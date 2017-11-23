@@ -1,0 +1,8 @@
+*.swp
+
+*.pyc
+
+.env/*
+
+.idea/*
+assignment*/.ipynb_checkpoints/*
