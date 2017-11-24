@@ -95,7 +95,7 @@ class KNearestNeighbor(object):
       # Compute the l2 distance between the ith test point and all training #
       # points, and store the result in dists[i, :].                        #
       #######################################################################
-      dists[i, :] = np.sqrt(np.sum(np.square(X[i] - self.X_train), axis=1))
+      dists[i] = np.sqrt(np.sum(np.square(X[i] - self.X_train), axis=1))
       #######################################################################
       #                         END OF YOUR CODE                            #
       #######################################################################
@@ -123,11 +123,18 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    import numpy.matlib
-    temp_test = np.repeat(X, num_train, axis=0)
-    temp_train = np.matlib.repmat(self.X_train, num_test, 1)
-    dists = np.sum(np.square(temp_test - temp_train), axis=1)
-    dists = dists.reshape(500, 5000)
+    #此处实现的原理，计算距离方法：（X1-X2）^2，将其展开，X1^2+X2^2-2X1*X2
+    #下面就是分别计算 X1^2,X2^2,2X1*X2 
+    # X1*X2部分 500*5000
+    M = np.dot(X,self.X_train.T) 
+    # # X1^2 部分 5000*1
+    sqtr = np.sum(np.square(self.X_train),axis=1,keepdims=True) 
+    # # X2^2 部分  500*1
+    sqte = np.sum(np.square(X),axis=1,keepdims=True)
+    # # 三部分相加，其中sqte+np.matrix(sqtr).T 500*1 + 1*5000  广播机制实现
+    dists = np.sqrt(sqte+np.matrix(sqtr).T-2*M)  
+    # dists = np.sqrt(-2*np.dot(X, self.X_train.T) + np.sum(np.square(self.X_train), axis = 1) + np.transpose([np.sum(np.square(X), axis = 1)]))
+
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -171,6 +178,8 @@ class KNearestNeighbor(object):
       #########################################################################
       u, idx = np.unique(closest_y, return_inverse=True)
       y_pred[i] = u[np.argmax(np.bincount(idx))]
+      # y_pred[i] = np.argmax(np.bincount(closest_y))
+
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
