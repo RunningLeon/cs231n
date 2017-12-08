@@ -6,3 +6,5 @@
 
 .idea/*
 assignment*/.ipynb_checkpoints/*
+# datasets in assignment1&2
+cifar-10-batches-py/*
