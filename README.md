@@ -10,4 +10,5 @@ Assignments solution for Stanford CS class [CS231n: Convolutional Neural Network
 * Assignment #2: Neural Networks, ConvNets I 
 * Assignment #3: ConvNets II, Transfer Learning, Visualization
 
-Last edit:12/10/2017 9:28:55 PM 
+Last edit:12/12/2017 9:22:00 AM 
+
