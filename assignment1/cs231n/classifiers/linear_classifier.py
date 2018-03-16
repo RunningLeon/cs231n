@@ -12,7 +12,7 @@ class LinearClassifier(object):
     self.W = None
 
   def train(self, X, y, learning_rate=1e-3, reg=1e-5, num_iters=100,
-            batch_size=200, verbose=False):
+            batch_size=200, validate=False, train_validate_split=0.1, verbose=False, print_every=100):
     """
     Train this linear classifier using stochastic gradient descent.
 
@@ -32,12 +32,24 @@ class LinearClassifier(object):
     """
     num_train, dim = X.shape
     num_classes = np.max(y) + 1 # assume y takes values 0...K-1 where K is number of classes
+    # train validation split 
+    if validate:
+      num_valid = int(num_train * train_validate_split)
+      valid_idx = np.random.choice(num_train, num_valid, replace=False)
+      train_idx = list(set(range(num_train)) - set(valid_idx))
+      X_valid, y_valid = X[valid_idx], y[valid_idx]
+      X, y = X[train_idx], y[train_idx]
+      num_train -= num_valid
     if self.W is None:
       # lazily initialize W
       self.W = 0.001 * np.random.randn(dim, num_classes)
-
+    # Init history that contain loss and acc on train and validation
+    history = {}
+    meric_names = ['train loss', 'train acc', 'valid loss', 'valid acc']
+    for me in meric_names:
+      history.setdefault(me, [])
+    
     # Run stochastic gradient descent to optimize W
-    loss_history = []
     for it in xrange(num_iters):
       X_batch = None
       y_batch = None
@@ -60,9 +72,24 @@ class LinearClassifier(object):
       #                       END OF YOUR CODE                                #
       #########################################################################
 
-      # evaluate loss and gradient
-      loss, grad = self.loss(X_batch, y_batch, reg)
-      loss_history.append(loss)
+      # evaluate loss and gradient on train dataset
+      train_loss, grad = self.loss(X_batch, y_batch, reg)
+      history['train loss'].append(train_loss)
+
+      # evaluate on validation dataset
+
+      if validate:
+        valid_loss, _ = self.loss(X_valid, y_valid, reg)
+        history['valid loss'].append(valid_loss)
+        # compute valid acc
+        valid_pred = self.predict(X_valid)
+        valid_acc = self.compute_accuracy(y_valid, valid_pred)
+        history['valid acc'].append(valid_acc)
+        # compute train acc
+        train_pred = self.predict(X)
+        train_acc = self.compute_accuracy(y, train_pred)
+        history['train acc'].append(train_acc)
+
 
       # perform parameter update
       #########################################################################
@@ -74,10 +101,15 @@ class LinearClassifier(object):
       #                       END OF YOUR CODE                                #
       #########################################################################
 
-      if verbose and it % 100 == 0:
-        print('iteration %d / %d: loss %f' % (it, num_iters, loss))
-
-    return loss_history
+      if verbose and it % print_every == 0:
+        if validate:
+          print('iteration %d / %d: loss %f, accuracy %f on train set, loss %f, accuracy %f on valid set' % 
+            (it, num_iters, train_loss, train_acc, valid_loss, valid_acc))
+        else:
+          print('iteration %d / %d: loss %f on train set' % (it, num_iters, train_loss))
+          
+        
+    return history
 
   def predict(self, X):
     """
@@ -121,6 +153,15 @@ class LinearClassifier(object):
     - gradient with respect to self.W; an array of the same shape as W
     """
     pass
+
+  def compute_accuracy(self, y_true=None, y_pred=None):
+    """
+    Compute accuracy
+    """
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    return np.mean(y_true == y_pred)
+
 
 
 class LinearSVM(LinearClassifier):

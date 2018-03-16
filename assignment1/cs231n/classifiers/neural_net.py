@@ -19,7 +19,7 @@ class TwoLayerNet(object):
   The outputs of the second fully-connected layer are the scores for each class.
   """
 
-  def __init__(self, input_size, hidden_size, output_size, std=1e-4):
+  def __init__(self, input_size, hidden_size, output_size, std=1e-2):
     """
     Initialize the model. Weights are initialized to small random values and
     biases are initialized to zero. Weights and biases are stored in the
@@ -36,12 +36,12 @@ class TwoLayerNet(object):
     - output_size: The number of classes C.
     """
     self.params = {}
-    self.params['W1'] = std * np.random.randn(input_size, hidden_size)
+    self.params['W1'] = np.abs(std * np.random.randn(input_size, hidden_size))
     self.params['b1'] = np.zeros(hidden_size)
-    self.params['W2'] = std * np.random.randn(hidden_size, output_size)
+    self.params['W2'] = np.abs(std * np.random.randn(hidden_size, output_size))
     self.params['b2'] = np.zeros(output_size)
 
-  def loss(self, X, y=None, reg=0.0):
+  def loss(self, X, y=None, reg=0.0, eps=1e-7):
     """
     Compute the loss and gradients for a two layer fully connected neural
     network.
@@ -97,7 +97,7 @@ class TwoLayerNet(object):
     #############################################################################
     # Substract max in each row
     scores = scores - np.max(scores, axis = 1).reshape(-1, 1)
-    softmax_output = np.exp(scores) / np.sum(np.exp(scores), axis = 1).reshape(-1, 1)
+    softmax_output = np.exp(scores) / np.sum(np.exp(scores), axis = 1).reshape(-1, 1) + eps
     loss = - np.sum(np.log(softmax_output[range(N), list(y)]))
     loss /= N
     loss += 0.5 * reg * (np.sum(np.square(W1)) + np.sum(np.square(W2)))
@@ -133,7 +133,7 @@ class TwoLayerNet(object):
   def train(self, X, y, X_val, y_val,
             learning_rate=1e-3, learning_rate_decay=0.95,
             reg=5e-6, num_iters=100,
-            batch_size=200, verbose=False):
+            batch_size=200, verbose=False, iterations_per_epoch=100, print_every=200):
     """
     Train this neural network using stochastic gradient descent.
 
@@ -152,8 +152,6 @@ class TwoLayerNet(object):
     - verbose: boolean; if true print progress during optimization.
     """
     num_train = X.shape[0]
-    iterations_per_epoch = max(num_train / batch_size, 1)
-
     # Use SGD to optimize the parameters in self.model
     loss_history = []
     train_acc_history = []
@@ -192,7 +190,7 @@ class TwoLayerNet(object):
       #                             END OF YOUR CODE                          #
       #########################################################################
 
-      if verbose and it % 100 == 0:
+      if verbose and it % print_every == 0:
         print('iteration %d / %d: loss %f' % (it, num_iters, loss))
 
       # Every epoch, check train and val accuracy and decay learning rate.

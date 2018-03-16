@@ -110,7 +110,7 @@ class KNearestNeighbor(object):
     """
     num_test = X.shape[0]
     num_train = self.X_train.shape[0]
-    dists = np.zeros((num_test, num_train)) 
+    dists = np.zeros((num_test, num_train), dtype=np.float64) 
     #########################################################################
     # TODO:                                                                 #
     # Compute the l2 distance between all test points and all training      #
@@ -124,16 +124,10 @@ class KNearestNeighbor(object):
     #       and two broadcast sums.                                         #
     #########################################################################
     #此处实现的原理，计算距离方法：（X1-X2）^2，将其展开，X1^2+X2^2-2X1*X2
-    #下面就是分别计算 X1^2,X2^2,2X1*X2 
-    # X1*X2部分 500*5000
-    M = np.dot(X,self.X_train.T) 
-    # # X1^2 部分 5000*1
-    sqtr = np.sum(np.square(self.X_train),axis=1,keepdims=True) 
-    # # X2^2 部分  500*1
-    sqte = np.sum(np.square(X),axis=1,keepdims=True)
-    # # 三部分相加，其中sqte+np.matrix(sqtr).T 500*1 + 1*5000  广播机制实现
-    dists = np.sqrt(sqte+np.matrix(sqtr).T-2*M)  
-    # dists = np.sqrt(-2*np.dot(X, self.X_train.T) + np.sum(np.square(self.X_train), axis = 1) + np.transpose([np.sum(np.square(X), axis = 1)]))
+    te_tr = X.dot(self.X_train.T) 
+    sqtr = np.sum(np.square(self.X_train),axis=1).reshape(1, -1) 
+    sqte = np.sum(np.square(X),axis=1).reshape(-1, 1)
+    dists = np.sqrt(sqte - 2*te_tr + sqtr)  
 
     #########################################################################
     #                         END OF YOUR CODE                              #
@@ -154,7 +148,7 @@ class KNearestNeighbor(object):
       test data, where y[i] is the predicted label for the test point X[i].  
     """
     num_test = dists.shape[0]
-    y_pred = np.zeros(num_test)
+    y_pred = np.zeros(num_test).reshape(-1, 1) # must reshape to avoid shape like (500,)
     for i in xrange(num_test):
       # A list of length k storing the labels of the k nearest neighbors to
       # the ith test point.
@@ -176,10 +170,11 @@ class KNearestNeighbor(object):
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      u, idx = np.unique(closest_y, return_inverse=True)
-      y_pred[i] = u[np.argmax(np.bincount(idx))]
-      # y_pred[i] = np.argmax(np.bincount(closest_y))
-
+      # u, idx = np.unique(closest_y, return_inverse=True)
+      # y_pred[i] = u[np.argmax(np.bincount(idx))]
+      values, counts = np.unique(closest_y, return_counts=True)
+      target_index = np.argmax(counts)     
+      y_pred[i] = values[target_index]
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
