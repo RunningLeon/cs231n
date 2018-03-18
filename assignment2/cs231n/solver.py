@@ -230,8 +230,8 @@ class Solver(object):
           classified by the model.
         """
 
-        # Maybe subsample the data
         N = X.shape[0]
+        # Maybe subsample the data
         if num_samples is not None and N > num_samples:
             mask = np.random.choice(N, num_samples)
             N = num_samples

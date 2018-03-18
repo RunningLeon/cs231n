@@ -480,7 +480,7 @@ def conv_forward_naive(x, w, b, conv_param):
     stride, pad = conv_param['stride'], conv_param['pad']
     H_out = int(1 + (H + 2 * pad - HH) / stride)
     W_out = int(1 + (W + 2 * pad  - WW) / stride)
-    x_pad   = np.pad(x, ((0,),(0,),(1,),(1,)),'constant', constant_values=0)
+    x_pad   = np.pad(x, ((0,),(0,),(pad,),(pad,)),'constant', constant_values=0)
     out = np.zeros((N, F, H_out, W_out))
     for i in xrange(H_out):
         for j in xrange(W_out):
@@ -494,7 +494,7 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    cache = (x, w, b, conv_param)
+    cache = (x, w, b, conv_param, stride, pad, H_out, W_out, x_pad)
     return out, cache
 
 
@@ -517,13 +517,9 @@ def conv_backward_naive(dout, cache):
     ###########################################################################
     ### referred  lightaime
     # get stored vars
-    x, w, b, conv_param = cache
+    x, w, b, conv_param, stride, pad, H_out, W_out, x_pad = cache
     N, C, H, W = x.shape
     F, C, HH, WW = w.shape
-    stride, pad = conv_param['stride'], conv_param['pad']
-    H_out = int(1 + (H + 2 * pad - HH) / stride)
-    W_out = int(1 + (W + 2 * pad  - WW) / stride)
-    x_pad   = np.pad(x, ((0,),(0,),(1,),(1,)),'constant', constant_values=0)
 
     dx = np.zeros_like(x)
     dx_pad = np.zeros_like(x_pad)
@@ -580,7 +576,7 @@ def max_pool_forward_naive(x, pool_param):
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    cache = (x, pool_param)
+    cache = (x, pool_param, stride, H_out, W_out, HH, WW)
     return out, cache
 
 
@@ -599,11 +595,8 @@ def max_pool_backward_naive(dout, cache):
     ###########################################################################
     # TODO: Implement the max pooling backward pass                           #
     ###########################################################################
-    x, pool_param = cache
+    x, pool_param, stride, H_out, W_out, HH, WW = cache
     N, C, H, W = x.shape
-    HH, WW, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
-    H_out = int((H - HH) / stride) + 1
-    W_out = int((W - WW) / stride) + 1
     dx = np.zeros_like(x)
     for i in xrange(H_out):
         for j in xrange(W_out):

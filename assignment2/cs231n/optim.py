@@ -71,7 +71,6 @@ def sgd_momentum(w, dw, config=None):
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    config['velocity'] = v
 
     return next_w, config
 
@@ -143,9 +142,38 @@ def adam(x, dx, config=None):
     config['t'] += 1
     config['m'] = config['beta1'] * config['m'] + (1 - config['beta1']) * dx
     config['v'] = config['beta2'] * config['v'] + (1 - config['beta2']) * np.square(dx) 
-    mt = config['m'] / (1 - config['beta1'] ** config['t'])
-    vt = config['t'] / (1 - config['beta2'] ** config['t'])
-    next_x = x - config['learning_rate'] * mt / (np.sqrt(vt) + config['epsilon'])
+    mtb = config['m'] / (1 - config['beta1'] ** config['t'])
+    vtb = config['v'] / (1 - config['beta2'] ** config['t'])
+    next_x = x - config['learning_rate'] * mtb / (np.sqrt(vtb) + config['epsilon'])
+
+    ###########################################################################
+    #                             END OF YOUR CODE                            #
+    ###########################################################################
+
+    return next_x, config
+
+def adagrad(x, dx, config=None):
+    """
+    Uses the AdaGrad update rule
+
+    config format:
+    - learning_rate: Scalar learning rate.
+    - epsilon: Small scalar used for smoothing to avoid dividing by zero.
+    - cache: sum of all second moments of gradients.
+    """
+    if config is None: config = {}
+    config.setdefault('learning_rate', 1e-2)
+    config.setdefault('epsilon', 1e-8)
+    config.setdefault('cache', np.zeros_like(x))
+
+    next_x = None
+    ###########################################################################
+    # TODO: Implement the AdaGrad update formula, storing the next value of x #
+    # in the next_x variable. Don't forget to update cache value stored in    #
+    # config['cache'].                                                        #
+    ###########################################################################
+    config['cache'] += np.square(dx)
+    next_x = x - config['learning_rate'] * dx / (np.sqrt(config['cache']) + config['epsilon'])
 
     ###########################################################################
     #                             END OF YOUR CODE                            #

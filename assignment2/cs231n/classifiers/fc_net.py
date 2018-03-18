@@ -93,7 +93,7 @@ class TwoLayerNet(object):
         if y is None:
             return scores
 
-        loss, grads = 0, {}
+        loss, grads = 0.0, {}
         ############################################################################
         # TODO: Implement the backward pass for the two-layer net. Store the loss  #
         # in the loss variable and gradients in the grads dictionary. Compute data #
@@ -184,14 +184,14 @@ class FullyConnectedNet(object):
             W_th = 'W%d'%(i + 1)
             b_th = 'b%d'%(i + 1)
             self.params[W_th] = weight_scale * np.random.randn(layer_input_dim, hidden_dim)
-            self.params[b_th] = weight_scale * np.zeros(hidden_dim)
+            self.params[b_th] = np.zeros(hidden_dim)
             if self.use_batchnorm:
                 self.params['gamma%d'%(i + 1)] = np.ones(hidden_dim)
                 self.params['beta%d'%(i + 1)] = np.zeros(hidden_dim)
             layer_input_dim = hidden_dim
         # init output layer
         self.params['W%d'%self.num_layers] = weight_scale * np.random.randn(layer_input_dim, num_classes)
-        self.params['b%d'%self.num_layers] = weight_scale * np.zeros(num_classes)
+        self.params['b%d'%self.num_layers] = np.zeros(num_classes)
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
